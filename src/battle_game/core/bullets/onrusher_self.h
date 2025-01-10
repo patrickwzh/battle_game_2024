@@ -18,6 +18,7 @@ class OnrusherSelf : public Bullet {
 
  private:
   glm::vec2 velocity_{};
-  uint32_t life_count_down_{6};
+  uint32_t life_count_down_{5};
+  std::set<uint32_t> hit_units_;
 };
 }  // namespace battle_game::bullet

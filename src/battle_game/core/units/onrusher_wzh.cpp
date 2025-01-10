@@ -9,6 +9,7 @@ namespace battle_game::unit {
 namespace {
 uint32_t onrusher_model_index = 0xffffffffu;
 uint32_t Onrusher_turret_model_index = 0xffffffffu;
+uint32_t spirit_bar_model_index = 0xffffffffu;
 }  // namespace
 
 Onrusher::Onrusher(GameCore *game_core, uint32_t id, uint32_t player_id)
@@ -16,57 +17,33 @@ Onrusher::Onrusher(GameCore *game_core, uint32_t id, uint32_t player_id)
   if (!~onrusher_model_index) {
     auto mgr = AssetsManager::GetInstance();
     {
-      /* Onrusher Body */
       onrusher_model_index = mgr->RegisterModel(
-          {
-              {{-0.8f, 0.8f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-              {{-0.8f, -1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-              {{0.8f, 0.8f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-              {{0.8f, -1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-              // distinguish front and back
-              {{0.6f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-              {{-0.6f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-          },
-          {0, 1, 2, 1, 2, 3, 0, 2, 5, 2, 4, 5});
+        {
+            // Define the vertices of the new isosceles triangle
+            // The sharp point at the top
+            { {0.0f, 0.5f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f} },
+            // Left base corner
+            { {-0.3f, -0.5f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f} },
+            // Right base corner
+            { {0.3f, -0.5f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f} },
+            // Back edges, used for differentiating front and back
+            { {0.0f, 0.5f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f} },
+            { {-0.3f, -0.5f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f} },
+            { {0.3f, -0.5f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f} }
+        },
+        {
+            0, 1, 2, 0, 2, 3, 0, 3, 4, 3, 5, 4
+        });
     }
-
-    {
-      /* Onrusher Turret */
-      std::vector<ObjectVertex> turret_vertices;
-      std::vector<uint32_t> turret_indices;
-      const int precision = 60;
-      const float inv_precision = 1.0f / float(precision);
-      for (int i = 0; i < precision; i++) {
-        auto theta = (float(i) + 0.5f) * inv_precision;
-        theta *= glm::pi<float>() * 2.0f;
-        auto sin_theta = std::sin(theta);
-        auto cos_theta = std::cos(theta);
-        turret_vertices.push_back({{sin_theta * 0.5f, cos_theta * 0.5f},
-                                   {0.0f, 0.0f},
-                                   {0.7f, 0.7f, 0.7f, 1.0f}});
-        turret_indices.push_back(i);
-        turret_indices.push_back((i + 1) % precision);
-        turret_indices.push_back(precision);
-      }
-      turret_vertices.push_back(
-          {{0.0f, 0.0f}, {0.0f, 0.0f}, {0.7f, 0.7f, 0.7f, 1.0f}});
-      turret_vertices.push_back(
-          {{-0.1f, 0.0f}, {0.0f, 0.0f}, {0.7f, 0.7f, 0.7f, 1.0f}});
-      turret_vertices.push_back(
-          {{0.1f, 0.0f}, {0.0f, 0.0f}, {0.7f, 0.7f, 0.7f, 1.0f}});
-      turret_vertices.push_back(
-          {{-0.1f, 1.2f}, {0.0f, 0.0f}, {0.7f, 0.7f, 0.7f, 1.0f}});
-      turret_vertices.push_back(
-          {{0.1f, 1.2f}, {0.0f, 0.0f}, {0.7f, 0.7f, 0.7f, 1.0f}});
-      turret_indices.push_back(precision + 1 + 0);
-      turret_indices.push_back(precision + 1 + 1);
-      turret_indices.push_back(precision + 1 + 2);
-      turret_indices.push_back(precision + 1 + 1);
-      turret_indices.push_back(precision + 1 + 2);
-      turret_indices.push_back(precision + 1 + 3);
-      Onrusher_turret_model_index =
-          mgr->RegisterModel(turret_vertices, turret_indices);
-    }
+  }
+  if (!~spirit_bar_model_index) {
+    auto mgr = AssetsManager::GetInstance();
+    spirit_bar_model_index = mgr->RegisterModel(
+        {{{-0.5f, 0.08f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+         {{-0.5f, -0.08f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+         {{0.5f, 0.08f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+         {{0.5f, -0.08f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}},
+        {0, 1, 2, 1, 2, 3});
   }
 }
 
@@ -75,19 +52,42 @@ void Onrusher::Render() {
   battle_game::SetTexture(0);
   battle_game::SetColor(game_core_->GetPlayerColor(player_id_));
   battle_game::DrawModel(onrusher_model_index);
-  battle_game::SetRotation(turret_rotation_);
-  battle_game::DrawModel(Onrusher_turret_model_index);
+  
+  // render spirit bar
+  battle_game::SetTransformation(position_ + glm::vec2{0.0f, 0.6f}, 0.0f, {2.4f, 1.0f});
+  battle_game::SetColor({0.0f, 0.0f, 0.0f, 1.0f});
+  battle_game::SetTexture(0);
+  battle_game::DrawModel(spirit_bar_model_index);
+  float norm_spirit = spirit_ / 3.0f;
+  glm::vec2 shift = {2.4f * (1 - norm_spirit) / 2, 0.0f};
+  battle_game::SetTransformation(position_ + glm::vec2{0.0f, 0.6f} - shift, 0.0f, {2.4f * norm_spirit, 1.0f});
+  battle_game::SetColor({1.0f, 0.5f, 0.0f, 1.0f});
+  battle_game::DrawModel(spirit_bar_model_index);
+  if (std::fabs(norm_spirit - fadeout_spirit_) >= 0.01f) {
+    fadeout_spirit_ = norm_spirit + (fadeout_spirit_ - norm_spirit) * 0.93;
+    shift = {2.4f * (norm_spirit + fadeout_spirit_ - 1) / 2, 0.0f};
+    battle_game::SetTransformation(position_ + glm::vec2{0.0f, 0.6f} + shift, 0.0f, {2.4f * (norm_spirit - fadeout_spirit_), 1.0f});
+    battle_game::SetColor({1.0f, 0.5f, 0.0f, 0.5f});
+    battle_game::DrawModel(spirit_bar_model_index);
+  } else {
+    fadeout_spirit_ = norm_spirit;
+  }
 }
 
 void Onrusher::Update() {
   if (!onrush_) {
-    OnrusherMove(3.0f, glm::radians(180.0f));
+    OnrusherMove(speed_, glm::radians(180.0f));
   } else {
-    Onrush(3.0f);
+    Onrush(speed_);
   }
   UpdateOnrush();
+  UpdateParams();
   TurretRotate();
-  Fire();
+}
+
+void Onrusher::UpdateParams() {
+  speed_ = 4.0f - GetHealthScale();
+  damage_scale_ = 1.0f + 0.5f * GetHealthScale();
 }
 
 void Onrusher::OnrusherMove(float move_speed, float rotate_angular_speed) {
@@ -137,12 +137,24 @@ void Onrusher::Onrush(float move_speed) {
     if (!game_core_->IsBlockedByObstacles(new_position)) {
       game_core_->PushEventMoveUnit(id_, new_position);
     }
+    for (auto &unit : game_core_->GetUnits()) {
+      if (unit.first == id_) {
+        continue;
+      }
+      if (unit.second->GetPlayerId() == player_id_) {
+        continue;
+      }
+      if (unit.second->IsHit(position_) && hit_units_.find(unit.first) == hit_units_.end()) {
+        game_core_->PushEventDealDamage(unit.first, id_, 20.0f);
+        hit_units_.insert(unit.first);
+      }
+    }
   }
 }
 
 float Onrusher::GetSpeedScale() const {
   if (onrush_) {
-    return 10.0f;
+    return 13.0f;
   } else {
     return 1.0f;
   }
@@ -152,20 +164,26 @@ void Onrusher::UpdateOnrush() {
   auto player = game_core_->GetPlayer(player_id_);
   if (player) {
     auto &input_data = player->GetInputData();
-    if (!onrush_ && input_data.key_down[GLFW_KEY_SPACE] && spirit_ >= 1.0f) {
+    if (!onrush_ && input_data.key_down[GLFW_KEY_SPACE] && spirit_ >= 1.0f && stop_ticks_ >= 10) {
       onrush_ = true;
-      onrush_cound_down_ = kTickPerSecond / 10;
+      stop_ticks_ = 0;
+      onrush_count_down_ = 3;
+      hit_units_.clear();
     }
     if (onrush_) {
-      spirit_ -= 1.0f / 6;
+      spirit_ -= 1.0f / 3;
       if (onrush_count_down_ == 0) {
         onrush_ = false;
+        stop_ticks_ = 0;
       } else {
         onrush_count_down_--;
       }
     }
     if (!onrush_ && spirit_ <= 3.0f) {
-      spirit_ = std::min(spirit_ + 1.0f / 90, 3.0f);
+      spirit_ = std::min(spirit_ + 1.0f / 100, 3.0f);
+    }
+    if (!onrush_) {
+      stop_ticks_++;
     }
   }
 }
@@ -183,23 +201,11 @@ void Onrusher::TurretRotate() {
   }
 }
 
-void Onrusher::Fire(float move_speed) {
-  if (onrush_) {
-    auto player = game_core_->GetPlayer(player_id_);
-    if (player) {
-      auto &input_data = player->GetInputData();
-        auto velocity = Rotate(glm::vec2{0.0f, move_speed * 10.0f}, turret_rotation_);
-        GenerateBullet<bullet::OnrusherSelf>(
-            position_, turret_rotation_, GetDamageScale(), velocity);
-    }
-  }
-}
-
 bool Onrusher::IsHit(glm::vec2 position) const {
   position = WorldToLocal(position);
-  return position.x > -0.8f && position.x < 0.8f && position.y > -1.0f &&
-         position.y < 1.0f && position.x + position.y < 1.6f &&
-         position.y - position.x < 1.6f;
+  return position.y < 0.5f + 2.0f / 0.6f * position.x &&
+         position.y < 0.5f - 2.0f / 0.6f * position.x &&
+         position.y > -0.5f;
 }
 
 const char *Onrusher::UnitName() const {
